@@ -1,0 +1,16 @@
+streamlit
+pypdf
+python-docx
+python-pptx
+unstructured
+beautifulsoup4
+faiss-cpu
+langchain-core
+langchain-community
+langchain-text-splitters
+# PDF support (robust)
+pypdf
+unstructured
+pdfminer.six
+pi-heif
+pillow
