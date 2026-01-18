@@ -1,12 +1,14 @@
-# Virtual environments
+# Python
 .venv/
-venv/
-
-# Python cache
 __pycache__/
 *.pyc
 
-# IDE / OS files
-.vscode/
-.idea/
+# Streamlit
+.streamlit/
+
+# Vector DB
+faiss_index/
+
+# OS
 .DS_Store
+Thumbs.db

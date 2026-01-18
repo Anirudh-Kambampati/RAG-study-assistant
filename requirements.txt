@@ -1,16 +1,45 @@
+# -------------------------
+# Core UI
+# -------------------------
 streamlit
-pypdf
-python-docx
-python-pptx
-unstructured
-beautifulsoup4
-faiss-cpu
+
+# -------------------------
+# LangChain (full + split packages)
+# -------------------------
+langchain
 langchain-core
 langchain-community
 langchain-text-splitters
-# PDF support (robust)
+langchain-ollama
+
+# -------------------------
+# Vector store
+# -------------------------
+faiss-cpu
+
+# -------------------------
+# LLM runtime (local)
+# -------------------------
+ollama
+
+# -------------------------
+# Document loaders - PDF
+# -------------------------
 pypdf
-unstructured
 pdfminer.six
+unstructured
 pi-heif
 pillow
+
+# -------------------------
+# Document loaders - DOCX / PPTX
+# -------------------------
+python-docx
+docx2txt
+python-pptx
+
+
+# -------------------------
+# Utilities
+# -------------------------
+tqdm
