@@ -111,6 +111,18 @@ rag-project/
 
 ## ⚙️ Installation & Setup
 
+This application is designed to run **locally**.
+
+It relies on:
+- **Ollama** for local LLM inference
+- **FAISS** for vector search
+- Native document processing libraries
+
+Because of these dependencies, it is **not suitable for direct deployment** on platforms like:
+- Streamlit Cloud
+- Vercel
+- Netlify
+
 ### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/Anirudh-Kambampati/RAG-study-assistant.git
