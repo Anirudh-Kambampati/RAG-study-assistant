@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from loaders.loader_factory import load_source
 from chunking.text_splitter import split_documents
 from vector_store.faiss_store import (
