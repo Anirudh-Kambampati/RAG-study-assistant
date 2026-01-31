@@ -7,7 +7,7 @@ from loaders.docx_loader import load_docx
 from loaders.pptx_loader import load_pptx
 from loaders.txt_loader import load_txt
 
-def load_source(source: str) -> List[Document]:
+def load_document(source: str) -> List[Document]:
     
     ext = Path(source).suffix.lower()
 
