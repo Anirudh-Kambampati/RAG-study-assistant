@@ -1,5 +1,6 @@
 import streamlit as st
-
+from dotenv import load_dotenv
+load_dotenv()
 from vector_store.faiss_store import load_faiss_index
 from llm.generator import get_llm
 from chat_utils import load_chats, save_chats
@@ -14,7 +15,7 @@ if "active_doc" not in st.session_state:
 
 doc_id = st.session_state.active_doc
 
-# Load chats from disk
+# Load chats
 chats = load_chats()
 
 if doc_id not in chats:
@@ -23,7 +24,7 @@ if doc_id not in chats:
 
 messages = chats[doc_id]["messages"]
 
-# Load vector DB (already built earlier)
+# Load vector store
 vectorstore = load_faiss_index(doc_id)
 
 st.title(f"💬 Chat — {doc_id}")
@@ -42,7 +43,7 @@ for msg in messages:
 user_query = st.chat_input("Ask something about the document")
 
 if user_query:
-    # Store user message
+    # Save user message
     messages.append({"role": "user", "content": user_query})
 
     with st.chat_message("user"):
@@ -51,19 +52,48 @@ if user_query:
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             docs = vectorstore.similarity_search(user_query, k=2)
+
             context = "\n\n---\n\n".join(
                 d.page_content[:800] for d in docs
             )
 
             llm = get_llm()
-            prompt = f"""
-You are a knowledgeable and helpful study assistant.
 
-Use the provided context as the primary source of truth.
-You may explain, simplify, or summarize the content.
-Do not introduce new facts beyond the context. 
-Provide a clear, structured, and detailed explanation when appropriate.
-Use paragraphs and examples if helpful.
+            prompt = f"""
+You are a knowledgeable and friendly academic assistant.
+
+Guidelines:
+- Answer clearly and confidently.
+- Use ONLY the information in the context. you MAY use your knowledge base to simplify and explain the context.
+- Do not invent or assume anything.
+- If the answer is not in the context, tell the user that the document does not contain the answer.
+- If answer is incomplete, Use general knowledge to complete the answer, in that case, clearly indicate which parts are based on:
+   - "From the document"
+   - "From general knowledge".
+Style:
+- Calm, clear, and slightly conversational
+- Well-structured explanations
+- Helpful, but not overly verbose
+
+Formatting & presentation rules:
+- Use clear Markdown formatting.
+- Use headings (##, ###) to organize sections logically.
+- Use bullet points for lists and key takeaways.
+- Use tables when comparing concepts, differences, or components.
+- Use code blocks when showing:
+  - workflows
+  - pipelines 
+  - step-by-step flows
+  - pseudo-code or structured logic
+  - code snippets
+- Do NOT use code blocks for normal text explanations.
+- Keep formatting clean and readable, not decorative.
+
+Format:
+- Clear explanation with paraphrases
+- Key points (bullets)
+- Simplified Explanation
+- Summary
 
 Context:
 {context}
@@ -75,10 +105,18 @@ Answer:
 """
             response = llm.invoke(prompt)
 
-        st.write(response)
+            # ✅ FIX: extract TEXT ONLY
+            assistant_text = (
+                response.content
+                if hasattr(response, "content")
+                else str(response)
+            )
 
-    # Store assistant message
-    messages.append({"role": "assistant", "content": response})
+        st.write(assistant_text)
 
-    # Persist updated chat to disk
+    # Save assistant message (TEXT ONLY)
+    messages.append(
+        {"role": "assistant", "content": assistant_text}
+    )
+
     save_chats(chats)

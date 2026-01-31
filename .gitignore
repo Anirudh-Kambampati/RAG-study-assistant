@@ -14,3 +14,4 @@ faiss_index/
 Thumbs.db
 
 .env
+chat_store.json
