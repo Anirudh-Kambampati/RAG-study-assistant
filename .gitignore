@@ -12,3 +12,6 @@ faiss_index/
 # OS
 .DS_Store
 Thumbs.db
+
+.env
+chat_store.json

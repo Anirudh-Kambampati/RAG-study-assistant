@@ -4,13 +4,14 @@
 streamlit
 
 # -------------------------
-# LangChain (full + split packages)
+# LangChain (core + providers)
 # -------------------------
 langchain
 langchain-core
 langchain-community
 langchain-text-splitters
 langchain-ollama
+langchain-openai
 
 # -------------------------
 # Vector store
@@ -23,21 +24,17 @@ faiss-cpu
 ollama
 
 # -------------------------
-# Document loaders - PDF
+# Document loaders
 # -------------------------
-pypdf
-pdfminer.six
-unstructured
-pi-heif
-pillow
+pypdf          # PDF loader
+python-docx    # DOCX loader
+python-pptx    # PPTX loader
+docx2txt       # DOCX text extraction
 
 # -------------------------
-# Document loaders - DOCX / PPTX
+# Environment variables
 # -------------------------
-python-docx
-docx2txt
-python-pptx
-
+python-dotenv
 
 # -------------------------
 # Utilities

@@ -7,10 +7,15 @@ CHAT_STORE = Path("chat_store.json")
 def load_chats() -> dict:
     if not CHAT_STORE.exists():
         return {}
-    with open(CHAT_STORE, "r", encoding="utf-8") as f:
-        return json.load(f)
+
+    try:
+        with open(CHAT_STORE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        print("⚠️ chat_store.json corrupted. Resetting.")
+        return {}
 
 
 def save_chats(chats: dict) -> None:
     with open(CHAT_STORE, "w", encoding="utf-8") as f:
-        json.dump(chats, f, indent=2)
+        json.dump(chats, f, indent=2, ensure_ascii=False)

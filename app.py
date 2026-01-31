@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from loaders.loader_factory import load_source
 from chunking.text_splitter import split_documents
 from vector_store.faiss_store import (
@@ -33,11 +36,24 @@ while True:
     context = "\n\n---\n\n".join(doc.page_content for doc in docs)
 
     prompt = f"""
-You are a strict question-answering assistant.
+You are a knowledgeable and friendly academic assistant.
 
-Use ONLY the information present in the context below.
-If the answer is not contained in the context, say:
-"I don’t know based on the provided document."
+Guidelines:
+- Answer clearly and confidently.
+- Use ONLY the information in the context.
+- Do not invent or assume anything.
+- If the answer is not in the context, say:
+  "I don’t know based on the document."
+
+Style:
+- Calm, clear, and slightly conversational
+- Well-structured explanations
+- Helpful, but not overly verbose
+
+Format:
+- Brief overview
+- Clear explanation
+- Key points (bullets)
 
 Context:
 {context}
@@ -47,7 +63,7 @@ Question:
 
 Answer:
 """
-
+    
     response = llm.invoke(prompt)
     print("\nAnswer:\n")
     print(response)
