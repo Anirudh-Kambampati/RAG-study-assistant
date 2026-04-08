@@ -3,7 +3,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def split_documents(documents):
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1200,
+        chunk_size=750,
         chunk_overlap=200,
         separators=[
             "\n\n",   # paragraphs (DOCX)

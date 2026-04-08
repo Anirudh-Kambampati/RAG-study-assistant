@@ -1,42 +1,25 @@
-# -------------------------
-# Core UI
-# -------------------------
-streamlit
+streamlit==1.33.0
+python-dotenv==1.0.1
 
-# -------------------------
-# LangChain (core + providers)
-# -------------------------
-langchain
-langchain-core
-langchain-community
-langchain-text-splitters
-langchain-ollama
-langchain-openai
+# LangChain core
+langchain==0.2.3
+langchain-community==0.2.4
+langchain-openai==0.1.8
+langchain-text-splitters==0.2.1
+langchain-huggingface==0.0.3
 
-# -------------------------
-# Vector store
-# -------------------------
-faiss-cpu
+# Embeddings
+sentence-transformers==2.7.0
 
-# -------------------------
-# LLM runtime (local)
-# -------------------------
-ollama
+# Vector DB
+faiss-cpu==1.7.4
 
-# -------------------------
 # Document loaders
-# -------------------------
-pypdf          # PDF loader
-python-docx    # DOCX loader
-python-pptx    # PPTX loader
-docx2txt       # DOCX text extraction
+pypdf==3.17.4
+docx2txt==0.8
+python-pptx==0.6.23
+unstructured==0.14.5
 
-# -------------------------
-# Environment variables
-# -------------------------
-python-dotenv
-
-# -------------------------
-# Utilities
-# -------------------------
-tqdm
+# Optional but recommended (PDF robustness)
+pdf2image==1.17.0
+pillow==10.3.0

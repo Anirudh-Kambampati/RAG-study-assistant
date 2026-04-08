@@ -1,40 +1,49 @@
 import os
-
-from langchain_ollama import OllamaLLM
 from langchain_openai import ChatOpenAI
-
+from langchain_ollama import OllamaLLM  # optional, can remove
 
 def get_llm():
-    """
-    LLM_BACKEND=local   -> Ollama (phi3:mini)
-    LLM_BACKEND=hosted  -> Groq API (LLaMA 3)
-    """
+    backend = os.getenv("LLM_BACKEND", "hosted").lower()
 
-    backend = os.getenv("LLM_BACKEND", "local").lower()
+    # -----------------------
+    # PRIMARY: Groq
+    # -----------------------
+    if backend == "hosted":
+        try:
+            print("🌐 Using Groq (primary)")
+            return ChatOpenAI(
+                base_url="https://api.groq.com/openai/v1",
+                api_key=os.getenv("GROQ_API_KEY"),
+                model="llama-3.1-8b-instant",
+                temperature=0.1,
+                max_tokens=900,
+            )
+        except Exception as e:
+            print(f"⚠️ Groq failed: {e}")
 
-    if backend == "local":
-        print("🧠 Using LOCAL Ollama model (phi3:mini)")
-        return OllamaLLM(
-            model="phi3:mini",
-            temperature=0.1,
-            num_ctx=2048,
-            num_predict=600,
-        )
+            # fallback to OpenRouter
+            return get_fallback_llm()
 
-    elif backend == "hosted":
-        api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
-            raise RuntimeError("GROQ_API_KEY is not set")
-
-        print("🌐 Using HOSTED Groq API (LLaMA 3.1-8B)")
-        return ChatOpenAI(
-            base_url="https://api.groq.com/openai/v1",
-            api_key=api_key,
-            model="llama-3.1-8b-instant",
-            temperature=0.1,
-            max_tokens=900
-
-        )
+    # -----------------------
+    # FALLBACK DIRECT
+    # -----------------------
+    elif backend == "fallback":
+        return get_fallback_llm()
 
     else:
-        raise ValueError("Invalid LLM_BACKEND (use local or hosted)")
+        raise ValueError("Invalid LLM_BACKEND")
+
+
+# -----------------------
+# FALLBACK LLM
+# -----------------------
+def get_fallback_llm():
+    print("🪂 Using OpenRouter fallback (Nemotron free)")
+
+    return ChatOpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+        model="nvidia/nemotron-3-super-120b-v1:free",
+        temperature=0.1,
+        max_tokens=900,
+    )

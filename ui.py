@@ -7,7 +7,7 @@ from vector_store.faiss_store import build_and_save_faiss_index
 from chat_utils import load_chats, save_chats
 
 
-st.set_page_config(page_title="New Chat", layout="wide")
+st.set_page_config(page_title="RAG Assistant", layout="wide")
 st.title("📄 RAG Study Assistant ")
 st.subheader("➕ Create a new chat")
 

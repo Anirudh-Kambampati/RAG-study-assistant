@@ -5,4 +5,4 @@ from langchain_core.documents import Document
 
 def load_pdf(path: str) -> List[Document]:
     loader = PyPDFLoader(path)
-    return loader.load()
+    return list(loader.lazy_load())

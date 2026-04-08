@@ -1,137 +1,107 @@
-# 📄 RAG Study Assistant
+# 📄 RAG Study Assistant (Hosted + Local Hybrid)
 
-A **document-centric Retrieval-Augmented Generation (RAG) application** built with **Streamlit, FAISS, and Ollama** that lets you chat with your documents while keeping answers **strictly grounded in the uploaded content**.
+A **document-based AI assistant** that lets you upload files and chat with them using **Retrieval-Augmented Generation (RAG)**.
 
-This project evolved through hands-on engineering decisions: managing document ingestion, chunking strategies, vector database lifecycle, chat persistence, and UI state. The result is a **production-style learning system** that is robust, extensible, and suitable for demos or a portfolio.
+This project is built as a **production-style system** with:
 
----
-
-## 🎯 What This Project Solves
-
-Traditional chatbots answer from general knowledge and can hallucinate. This app instead:
-
-- Retrieves **only the most relevant parts of your document**
-- Uses those parts as **context for the LLM**
-- Produces answers that are **document-scoped and reproducible**
-- Keeps **separate chat sessions per document**, so contexts never mix
+* modular architecture
+* pluggable LLM backends
+* persistent chat sessions
+* deployable infrastructure (no local model dependency required)
 
 ---
 
-## 🧠 What is RAG (Retrieval-Augmented Generation)?
+## 🎯 What This Solves
 
-RAG combines **search** and **generation**:
+Traditional LLMs often hallucinate or provide generic answers.
 
-1. Documents are split into chunks
-2. Each chunk is converted into an embedding
-3. Embeddings are stored in a vector database (FAISS)
-4. For every user query:
-   - Relevant chunks are retrieved via semantic similarity
-   - Retrieved text is passed to the LLM as context
-5. The LLM answers **using only that context**
+This app:
 
-This approach:
-- Reduces hallucinations
-- Works with private/local data
-- Avoids fine-tuning
-- Scales better than prompt-stuffing
+* retrieves **relevant chunks from your document**
+* uses them as **context for the LLM**
+* ensures answers are **grounded, explainable, and reliable**
 
 ---
 
-## ✨ Key Features
+## 🧠 Core Concept: RAG
 
-- 📁 Upload documents (`PDF`, `DOCX`, `PPTX`, `TXT`)
-- 💬 Chat-style UI (ChatGPT-like experience)
-- 🧠 True Retrieval-Augmented Generation
-- 🔍 FAISS-based semantic search
-- 📚 Persistent chat history per document
-- 🗂️ One chat per document (no cross-contamination)
-- 🧭 Multi-page Streamlit application
-- 🖥️ Fully local inference using Ollama (no API keys)
-- ♻️ Controlled vector database lifecycle to avoid disk/RAM bloat
+Retrieval-Augmented Generation works as follows:
+
+1. Upload document
+2. Split into chunks
+3. Convert chunks → embeddings
+4. Store in FAISS vector database
+5. On query:
+
+   * retrieve relevant chunks
+   * pass them to LLM
+   * generate contextual answer
 
 ---
 
-## 🏗️ System Architecture
+## ✨ Features
+
+* 📁 Upload documents (`PDF`, `DOCX`, `PPTX`, `TXT`)
+* 💬 Chat-style interface (ChatGPT-like UX)
+* 🧠 True Retrieval-Augmented Generation
+* 🔍 Semantic search using FAISS
+* 💾 Persistent chat history per document
+* ⚡ Hosted LLM support (Groq)
+* 🪂 Fallback LLM support (OpenRouter)
+* 🧩 Modular embedding + LLM backend
+* 🌐 Fully deployable (no Ollama required)
+
+---
+
+## 🏗️ Architecture
 
 ```
-
 User
 │
 ▼
-Streamlit UI (Multi-page)
+Streamlit UI
 │
-├── New Chat / Upload Page
-├── Chats List Page
-├── Chat Page (per document)
+├── Upload Page
+├── Chat Page
+├── Chat History
 │
 ▼
 FAISS Vector Store (per document)
 │
 ▼
-Ollama Local LLM
-
+Embedding Model (HuggingFace MiniLM)
+│
+▼
+LLM Layer
+   ├── Primary: Groq (LLaMA 3)
+   └── Fallback: OpenRouter (Nemotron)
 ```
-
-### Design Principles
-
-- **One document = one chat**
-- **One document = one FAISS index**
-- **Vector DBs are treated as cache, not source code**
-- **Chat history is persistent and reloadable**
-- **UI state is cleanly separated from data storage**
 
 ---
 
-## 🗂️ Project Structure
+## ⚙️ Tech Stack
 
-```
-
-rag-project/
-│
-├── loaders/              # Document loaders (PDF, DOCX, PPTX, TXT)
-├── chunking/             # Text splitting & chunking logic
-├── embeddings/           # Embedding model wrapper
-├── vector_store/         # FAISS index creation & loading
-├── llm/                  # Ollama LLM wrapper
-│
-├── pages/                # Streamlit multipage UI
-│   ├── 1_Chats.py        # List & reopen previous chats
-│   └── 2_Chat.py         # Chat interface
-│
-├── chat_store.json       # Persistent chat metadata
-├── chat_utils.py         # Chat persistence utilities
-├── ui.py                 # Main entry point (new chat / upload)
-├── requirements.txt
-├── .gitignore
-└── README.md
-
-````
+* **Frontend:** Streamlit
+* **Backend:** Python
+* **LLM:** Groq (primary), OpenRouter (fallback)
+* **Embeddings:** HuggingFace (`all-MiniLM-L6-v2`)
+* **Vector DB:** FAISS
+* **Document Parsing:** PyPDF, Unstructured, Docx2txt
 
 ---
 
-## ⚙️ Installation & Setup
+## 🚀 Setup Instructions
 
-This application is designed to run **locally**.
+### 1️⃣ Clone Repository
 
-It relies on:
-- **Ollama** for local LLM inference
-- **FAISS** for vector search
-- Native document processing libraries
-
-Because of these dependencies, it is **not suitable for direct deployment** on platforms like:
-- Streamlit Cloud
-- Vercel
-- Netlify
-
-### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/Anirudh-Kambampati/RAG-study-assistant.git
-cd RAG-study-assistant
-````
+git clone https://github.com/your-username/rag-study-assistant.git
+cd rag-study-assistant
+```
 
 ---
 
-### 2️⃣ Create a Virtual Environment
+### 2️⃣ Create Virtual Environment
 
 ```bash
 python -m venv .venv
@@ -145,7 +115,7 @@ Activate it:
 .venv\Scripts\activate
 ```
 
-**Linux / macOS**
+**Mac/Linux**
 
 ```bash
 source .venv/bin/activate
@@ -159,35 +129,31 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-The dependency list is intentionally **defensive**, covering all loaders and edge cases encountered during development.
-
 ---
 
-## 🧠 Ollama Setup (Required)
+### 4️⃣ Configure Environment Variables
 
-This project uses **local LLM inference** via Ollama.
+Create a `.env` file in the root directory:
 
-### Install Ollama
+```env
+LLM_BACKEND=hosted
 
-👉 [https://ollama.com](https://ollama.com)
+# Groq (Primary LLM)
+GROQ_API_KEY=your_groq_api_key
 
-### Pull Required Models
-
-```bash
-ollama pull phi3:mini
-ollama pull nomic-embed-text
+# OpenRouter (Fallback LLM)
+OPENROUTER_API_KEY=your_openrouter_api_key
 ```
 
-> ⚠️ For low-RAM systems, consider smaller models such as `phi` or `mistral`, since my system is low ram, the default is set to phi3:mini 
 ---
 
-## 🚀 Running the Application
+### 5️⃣ Run the Application
 
 ```bash
 streamlit run ui.py
 ```
 
-Open your browser at:
+Open in browser:
 
 ```
 http://localhost:8501
@@ -195,66 +161,87 @@ http://localhost:8501
 
 ---
 
-## 🧪 How the Application Works (Step-by-Step)
+## 🧪 How It Works (Execution Flow)
 
 1. User uploads a document
 2. Document is parsed and cleaned
-3. Text is split into overlapping, context-aware chunks
-4. Chunks are embedded and stored in FAISS
-5. User asks a question
-6. FAISS retrieves the most relevant chunks
-7. Retrieved context is sent to the LLM
-8. The LLM generates a grounded response
-
-The model **never answers without retrieved document context**.
-
----
-
-## 🗂️ Chat System Design
-
-* Each document has:
-
-  * its own FAISS index
-  * its own chat history
-* Chat metadata is stored in `chat_store.json`
-* Chats persist across:
-
-  * page reloads
-  * browser refreshes
-  * application restarts
-* Old chats can be reopened and continued seamlessly
+3. Text is split into chunks
+4. Chunks are embedded using MiniLM
+5. Stored in FAISS vector database
+6. User asks a question
+7. Relevant chunks are retrieved
+8. Context is sent to LLM
+9. LLM generates grounded response
 
 ---
 
-## 🧹 Repository Hygiene
+## 🧠 LLM Strategy
 
-The following are **intentionally not committed**:
-
-* `.venv/`
-* FAISS index data
-* Uploaded documents
-* OS cache files
-
-These are runtime artifacts and should not be version-controlled.
+| Layer      | Model                      | Purpose            |
+| ---------- | -------------------------- | ------------------ |
+| Primary    | Groq LLaMA 3.1 8B          | Fast responses ⚡   |
+| Fallback   | Nemotron (OpenRouter free) | Reliability 🪂     |
+| Embeddings | MiniLM                     | Lightweight + fast |
 
 ---
 
-## 🛠️ Tech Stack
+## ⚡ Key Design Decisions
 
-* **Python**
-* **Streamlit**
-* **LangChain**
-* **FAISS**
-* **Ollama**
-* **Unstructured**
-* **PyPDF**
-* **python-docx**
-* **python-pptx**
+* **One document = one FAISS index**
+* **Vector DB treated as cache**
+* **Chat history stored separately**
+* **Modular LLM + embedding backend**
+* **Failover system for reliability**
 
 ---
+
+## 🗂️ Project Structure
+
+```
+rag-project/
+│
+├── loaders/              # Document loaders
+├── chunking/             # Text splitting logic
+├── embeddings/           # Embedding model
+├── vector_store/         # FAISS management
+├── llm/                  # LLM configuration
+│
+├── pages/
+│   ├── 1_Chats.py
+│   └── 2_Chat.py
+│
+├── ui.py                 # Main entry point
+├── chat_store.json       # Chat persistence
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## ⚠️ Known Limitations
+
+* Some PDFs may fail due to malformed structure (PyPDF limitation)
+* Lightweight embeddings → slightly lower semantic accuracy
+* Free-tier APIs may have rate limits
+
+---
+
+## 🚀 Future Improvements
+
+* 🔁 Hybrid search (BM25 + vector)
+* 🎯 Reranking models
+* 🧠 Query rewriting
+* 📊 Source highlighting
+* 🌐 Multi-user support
+* 📁 File preview panel
+
+---
+
 ## 👤 Author
 
 **Anirudh Kambampati**
+
+---
 
 ## 📜 License
 

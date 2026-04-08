@@ -51,10 +51,11 @@ if user_query:
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            docs = vectorstore.similarity_search(user_query, k=2)
+            k=4
+            docs = vectorstore.similarity_search(user_query, k=k)
 
             context = "\n\n---\n\n".join(
-                d.page_content[:800] for d in docs
+                d.page_content[:1200] for d in docs
             )
 
             llm = get_llm()
@@ -87,7 +88,7 @@ Formatting & presentation rules:
   - pseudo-code or structured logic
   - code snippets
 - Do NOT use code blocks for normal text explanations.
-- Keep formatting clean and readable, not decorative.
+- Keep formatting clean and readable and decorative.
 
 Format:
 - Clear explanation with paraphrases
@@ -103,7 +104,14 @@ Question:
 
 Answer:
 """
-            response = llm.invoke(prompt)
+            try:
+                response = llm.invoke(prompt)
+            except Exception as e:
+                print(f"⚠️ Primary LLM failed: {e}")
+                from llm.generator import get_fallback_llm
+                fallback_llm = get_fallback_llm()
+                
+                response = fallback_llm.invoke(prompt)
 
             # ✅ FIX: extract TEXT ONLY
             assistant_text = (
