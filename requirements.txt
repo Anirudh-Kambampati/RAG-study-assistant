@@ -12,7 +12,7 @@ langchain-huggingface==0.0.3
 sentence-transformers==2.7.0
 
 # Vector DB
-faiss-cpu==1.7.4
+faiss-cpu>=1.13.0
 
 # Document loaders
 pypdf==3.17.4
