@@ -1,25 +1,25 @@
-streamlit==1.33.0
-python-dotenv==1.0.1
+streamlit
+python-dotenv
 
 # LangChain core
-langchain==0.2.3
-langchain-community==0.2.4
-langchain-openai==0.1.8
-langchain-text-splitters==0.2.1
-langchain-huggingface==0.0.3
+langchain
+langchain-community
+langchain-openai
+langchain-text-splitters
+langchain-huggingface
 
 # Embeddings
-sentence-transformers==2.7.0
+sentence-transformers
 
 # Vector DB
-faiss-cpu>=1.13.0
+faiss-cpu
 
 # Document loaders
-pypdf==3.17.4
-docx2txt==0.8
-python-pptx==0.6.23
-unstructured==0.14.5
+pypdf
+docx2txt
+python-pptx
+unstructured
 
 # Optional but recommended (PDF robustness)
-pdf2image==1.17.0
-pillow==10.3.0
+pdf2image
+pillow
