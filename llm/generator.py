@@ -1,6 +1,5 @@
 import os
 from langchain_openai import ChatOpenAI
-from langchain_ollama import OllamaLLM  # optional, can remove
 
 def get_llm():
     backend = os.getenv("LLM_BACKEND", "hosted").lower()
@@ -10,16 +9,15 @@ def get_llm():
     # -----------------------
     if backend == "hosted":
         try:
-            print("🌐 Using Groq (primary)")
+            print("Using Groq (primary)")
             return ChatOpenAI(
                 base_url="https://api.groq.com/openai/v1",
                 api_key=os.getenv("GROQ_API_KEY"),
-                model="llama-3.1-8b-instant",
+                model="openai/gpt-oss-120b",
                 temperature=0.1,
-                max_tokens=900,
             )
         except Exception as e:
-            print(f"⚠️ Groq failed: {e}")
+            print(f"Groq failed: {e}")
 
             # fallback to OpenRouter
             return get_fallback_llm()
@@ -38,12 +36,15 @@ def get_llm():
 # FALLBACK LLM
 # -----------------------
 def get_fallback_llm():
-    print("🪂 Using OpenRouter fallback (Nemotron free)")
+    print("Using OpenRouter fallback (Gemma 4 26B A4B, free)")
 
     return ChatOpenAI(
         base_url="https://openrouter.ai/api/v1",
         api_key=os.getenv("OPENROUTER_API_KEY"),
-        model="nvidia/nemotron-3-super-120b-v1:free",
+        model="google/gemma-4-26b-a4b-it:free",
         temperature=0.1,
-        max_tokens=900,
+        default_headers={
+            "HTTP-Referer": "http://localhost:3000",
+            "X-Title": "Metis",
+        },
     )

@@ -1,4 +1,4 @@
-# 📄 RAG Study Assistant (Hosted + Local Hybrid)
+# 📄 Metis (Hosted + Local Hybrid)
 
 A **document-based AI assistant** that lets you upload files and chat with them using **Retrieval-Augmented Generation (RAG)**.
 
@@ -59,11 +59,19 @@ Retrieval-Augmented Generation works as follows:
 User
 │
 ▼
-Streamlit UI
+Next.js Frontend (frontend/)
 │
-├── Upload Page
-├── Chat Page
-├── Chat History
+├── Upload Page (/)
+├── Chats Page (/chats)
+├── Chat Page (/chat/[docId])
+│
+▼
+FastAPI Backend (api/)
+│
+├── POST /chats/{doc_id}          # upload + index
+├── GET  /chats                   # list chats
+├── DELETE /chats/{doc_id}        # delete chat
+└── POST /chats/{doc_id}/query    # RAG query
 │
 ▼
 FAISS Vector Store (per document)
@@ -81,8 +89,8 @@ LLM Layer
 
 ## ⚙️ Tech Stack
 
-* **Frontend:** Streamlit
-* **Backend:** Python
+* **Frontend:** Next.js (React, TypeScript) — ChatGPT-style interface with sidebar (New Chat, history, Settings), light/dark theme, and adjustable retrieval depth
+* **Backend:** FastAPI (Python)
 * **LLM:** Groq (primary), OpenRouter (fallback)
 * **Embeddings:** HuggingFace (`all-MiniLM-L6-v2`)
 * **Vector DB:** FAISS
@@ -125,8 +133,18 @@ source .venv/bin/activate
 
 ### 3️⃣ Install Dependencies
 
+Backend (Python):
+
 ```bash
 pip install -r requirements.txt
+```
+
+Frontend (Node.js 18.18+ required):
+
+```bash
+cd frontend
+npm install
+cd ..
 ```
 
 ---
@@ -149,15 +167,26 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 
 ### 5️⃣ Run the Application
 
+Start the backend (from the repo root):
+
 ```bash
-streamlit run ui.py
+uvicorn api.main:app --reload
+```
+
+In a second terminal, start the frontend:
+
+```bash
+cd frontend
+npm run dev
 ```
 
 Open in browser:
 
 ```
-http://localhost:8501
+http://localhost:3000
 ```
+
+The Next.js dev server proxies `/api/*` requests to the backend (default `http://localhost:8000`, override with `BACKEND_URL`).
 
 ---
 
@@ -200,17 +229,20 @@ http://localhost:8501
 ```
 rag-project/
 │
+├── frontend/             # Next.js frontend (ChatGPT-style UI)
+│   ├── app/              # Pages: / (new chat), /chat/[docId]
+│   ├── components/       # AppShell, Sidebar, SettingsModal
+│   └── lib/              # API client + settings (theme, retrieval k)
+│
+├── api/                  # FastAPI backend (HTTP layer)
+│   └── main.py           # Chats CRUD + RAG query endpoints
+│
 ├── loaders/              # Document loaders
 ├── chunking/             # Text splitting logic
 ├── embeddings/           # Embedding model
 ├── vector_store/         # FAISS management
 ├── llm/                  # LLM configuration
 │
-├── pages/
-│   ├── 1_Chats.py
-│   └── 2_Chat.py
-│
-├── ui.py                 # Main entry point
 ├── chat_store.json       # Chat persistence
 ├── requirements.txt
 └── README.md

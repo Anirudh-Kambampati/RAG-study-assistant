@@ -1,1 +1,15 @@
-{}
+{
+  "CD_Record_Anirudh.pdf": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain the main concepts"
+      },
+      {
+        "role": "assistant",
+        "content": "**Main concepts covered in the supplied LEX programs**\n\n- **Token recognition with regular expressions** \u2013 each file defines patterns (`[a-zA-Z]+`, `\\t`, `\\n`, etc.) that match keywords, numbers, simple/compound words, spaces, lines, etc.\n- **Action blocks** \u2013 when a pattern is matched, the code inside `{ \u2026 }` is executed (e.g., increment counters, print \u201cSimple Word\u201d, \u201cCompound Word\u201d, or display counts).\n- **Counters for statistics** \u2013 the first program (`prog1.l`) maintains `lines`, `words`, `spaces`, and `characters` and updates them in the corresponding rule actions.\n- **Classification of input** \u2013 the `simple_compound.l` program distinguishes a *simple* word (single token) from a *compound* word (two tokens separated by whitespace) and prints the appropriate label.\n- **Standard LEX structure** \u2013 each file follows the three\u2011section format:\n  1. **Definitions/Declarations** (`%{ \u2026 %}`) for C includes and global variables.\n  2. **Rules** (`pattern { action }`) that map regular expressions to actions.\n  3. **User code** (`int main() \u2026`) that starts the scanner with `yylex()` and provides a `yywrap()` function.\n\n*Illustrative example*: In `prog1.l`, the rule `{word}` increments `words` and adds the token length (`yyleng`) to `characters`, thereby counting how many words and total characters appear in the input."
+      }
+    ],
+    "index_dir": "faiss_index/CD_Record_Anirudh.pdf"
+  }
+}

@@ -9,9 +9,17 @@ __pycache__/
 # Vector DB
 faiss_index/
 
+# Database + per-user file storage
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+data/
+
 # OS
 .DS_Store
 Thumbs.db
 
 .env
 chat_store.json
+./node

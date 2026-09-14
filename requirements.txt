@@ -1,5 +1,13 @@
-streamlit
+# Web layer (frontend: frontend/ Next.js, backend: api/ FastAPI)
+fastapi
+uvicorn[standard]
+python-multipart
 python-dotenv
+
+# Database (Neon Postgres) + migrations
+psycopg[binary]
+alembic
+sqlalchemy
 
 # LangChain core
 langchain
@@ -12,7 +20,7 @@ langchain-huggingface
 sentence-transformers
 
 # Vector DB
-faiss-cpu
+qdrant-client
 
 # Document loaders
 pypdf
