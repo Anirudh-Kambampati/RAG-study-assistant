@@ -14,17 +14,17 @@ sqlalchemy==2.0.52
 langchain-community==0.4.2
 langchain-openai==1.6.2
 langchain-text-splitters==1.1.2
-langchain-huggingface==1.2.2
 
-# Embeddings
-sentence-transformers==6.0.1
+# Embeddings — ONNX runtime (fastembed), not PyTorch/sentence-transformers.
+# Same model (sentence-transformers/all-MiniLM-L6-v2) and output, but
+# PyTorch's CPU runtime overhead alone was enough to exceed a 512MB host's
+# memory limit; onnxruntime's footprint for the same model is a fraction of
+# that. (BM25 sparse search is separate, pure-Python, and needs no model at
+# all — see vector_store/qdrant_store.py.)
+fastembed==0.8.1
 
 # Vector DB
 qdrant-client==1.19.0
-# BM25 sparse search is implemented directly in vector_store/qdrant_store.py
-# using only the standard library (re/zlib/collections) — no model/runtime
-# needed, and no onnxruntime (fastembed's dependency), which was what
-# pushed memory usage over the limit on a 512MB host.
 
 # Document loaders
 pypdf==6.18.1

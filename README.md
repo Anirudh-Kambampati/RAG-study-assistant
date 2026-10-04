@@ -109,7 +109,7 @@ LLM Layer
 * **Auth:** PBKDF2-hashed passwords, HttpOnly session cookies (`auth.py`)
 * **Database:** Postgres (Neon) — users, sessions, documents, chats, messages; schema managed via Alembic
 * **LLM:** Groq `openai/gpt-oss-120b` (primary), OpenRouter `google/gemma-4-26b-a4b-it:free` (fallback)
-* **Embeddings:** HuggingFace (`all-MiniLM-L6-v2`)
+* **Embeddings:** `sentence-transformers/all-MiniLM-L6-v2`, run via `fastembed`'s ONNX runtime rather than PyTorch — same model/output, much lighter memory footprint
 * **Vector DB:** Qdrant Cloud — one shared collection, isolated per user/document via payload filters; hybrid dense + BM25 sparse search (BM25 implemented in pure Python, no extra model/runtime), fused via RRF
 * **Document Parsing:** PyPDF, Unstructured, Docx2txt
 * **Deployment:** Docker (backend), standard Next.js build (frontend)
