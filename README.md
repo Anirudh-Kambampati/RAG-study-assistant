@@ -110,7 +110,7 @@ LLM Layer
 * **Database:** Postgres (Neon) — users, sessions, documents, chats, messages; schema managed via Alembic
 * **LLM:** Groq `openai/gpt-oss-120b` (primary), OpenRouter `google/gemma-4-26b-a4b-it:free` (fallback)
 * **Embeddings:** HuggingFace (`all-MiniLM-L6-v2`)
-* **Vector DB:** Qdrant Cloud — one shared collection, isolated per user/document via payload filters; hybrid dense + BM25 sparse search (`fastembed`), fused via RRF
+* **Vector DB:** Qdrant Cloud — one shared collection, isolated per user/document via payload filters; hybrid dense + BM25 sparse search (BM25 implemented in pure Python, no extra model/runtime), fused via RRF
 * **Document Parsing:** PyPDF, Unstructured, Docx2txt
 * **Deployment:** Docker (backend), standard Next.js build (frontend)
 

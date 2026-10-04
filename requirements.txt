@@ -21,7 +21,10 @@ sentence-transformers==6.0.1
 
 # Vector DB
 qdrant-client==1.19.0
-fastembed==0.8.1
+# BM25 sparse search is implemented directly in vector_store/qdrant_store.py
+# using only the standard library (re/zlib/collections) — no model/runtime
+# needed, and no onnxruntime (fastembed's dependency), which was what
+# pushed memory usage over the limit on a 512MB host.
 
 # Document loaders
 pypdf==6.18.1
