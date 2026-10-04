@@ -14,7 +14,11 @@ class _FastEmbedAdapter:
         self._model = model
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        return [vec.tolist() for vec in self._model.embed(texts)]
+        # Capped (fastembed's own default is 256) so one large document's
+        # chunks don't all get tokenized/inferred as a single onnxruntime
+        # batch at once — smaller batches bound the peak tensor memory of
+        # any one `embed()` call, at the cost of a few more inference calls.
+        return [vec.tolist() for vec in self._model.embed(texts, batch_size=32)]
 
     def embed_query(self, text: str) -> List[float]:
         return next(iter(self._model.query_embed([text]))).tolist()
@@ -31,8 +35,21 @@ def get_embedding_model() -> _FastEmbedAdapter:
     Cached as a module-level singleton — the previous version constructed a
     fresh model instance on every call, reloading weights into memory each
     time instead of reusing one.
+
+    `threads=1` keeps onnxruntime from spinning up a thread pool sized to
+    the host's CPU count (each intra/inter-op thread gets its own working
+    buffers — wasted overhead on a 0.1 CPU free-tier instance anyway).
+    `enable_cpu_mem_arena=False` turns off onnxruntime's CPU memory arena,
+    which by default grows to the largest allocation it's ever seen and
+    never shrinks for the life of the process; without it, every allocation
+    is freed back to the OS as soon as it's no longer needed, so memory
+    doesn't ratchet upward across repeated uploads in the same process.
     """
     global _model
     if _model is None:
-        _model = TextEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        _model = TextEmbedding(
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            threads=1,
+            enable_cpu_mem_arena=False,
+        )
     return _FastEmbedAdapter(_model)
