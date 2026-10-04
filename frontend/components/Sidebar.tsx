@@ -37,7 +37,13 @@ export default function Sidebar({ activeDocId }: { activeDocId?: string }) {
 
   async function handleLogout() {
     await logout();
-    router.push("/login");
+    // Hard navigation, not router.push: the session cookie was just cleared
+    // by a plain fetch() (not a router-driven action), which the client-side
+    // router cache doesn't know about. router.push can then reuse a stale
+    // cached decision from while the cookie was still present and bounce
+    // back to /dashboard instead of landing on /login. A full page load
+    // guarantees the middleware re-evaluates with the now-cleared cookie.
+    window.location.href = "/login";
   }
 
   const onSettingsPage = pathname === "/settings";

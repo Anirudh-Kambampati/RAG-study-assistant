@@ -66,7 +66,7 @@ def test_vector_count_matches_chunks(owner):
     assert count >= 5  # collection is shared, so only a lower bound is meaningful here
 
 
-def test_search_returns_relevant_chunk_with_metadata(owner, embedder):
+def test_search_returns_relevant_chunk_with_metadata(owner):
     user_id, doc_id = owner
     chunks = [
         Document(page_content="The mitochondria produces ATP through oxidative phosphorylation.", metadata={"page": 3}),
@@ -74,8 +74,7 @@ def test_search_returns_relevant_chunk_with_metadata(owner, embedder):
     ]
     upsert_document_chunks(user_id, doc_id, "cell.pdf", chunks)
 
-    query_embedding = embedder.embed_query("How does the mitochondria make energy?")
-    results = search_document(user_id, doc_id, query_embedding, k=1, fetch_k=10)
+    results = search_document(user_id, doc_id, "How does the mitochondria make energy?", k=1, fetch_k=10)
 
     assert len(results) == 1
     doc, score = results[0]
@@ -86,29 +85,27 @@ def test_search_returns_relevant_chunk_with_metadata(owner, embedder):
 
 
 @pytest.mark.parametrize("k", [3, 5, 8])
-def test_search_depth_k_is_respected(owner, embedder, k):
+def test_search_depth_k_is_respected(owner, k):
     user_id, doc_id = owner
     chunks = [Document(page_content=f"Fact number {i}: cells have many organelles.") for i in range(10)]
     upsert_document_chunks(user_id, doc_id, "facts.txt", chunks)
 
-    query_embedding = embedder.embed_query("Tell me about cell organelles.")
-    results = search_document(user_id, doc_id, query_embedding, k=k, fetch_k=max(k * 4, 20))
+    results = search_document(user_id, doc_id, "Tell me about cell organelles.", k=k, fetch_k=max(k * 4, 20))
     assert len(results) == k
 
 
-def test_doc_id_filtering_isolates_documents_for_same_user(embedder):
+def test_doc_id_filtering_isolates_documents_for_same_user():
     user_id = f"test-user-{uuid.uuid4().hex[:8]}"
     doc_a, doc_b = f"doc-a-{uuid.uuid4().hex[:8]}", f"doc-b-{uuid.uuid4().hex[:8]}"
     try:
         upsert_document_chunks(user_id, doc_a, "a.txt", [Document(page_content="Content about astronomy and stars.")])
         upsert_document_chunks(user_id, doc_b, "b.txt", [Document(page_content="Content about cooking recipes.")])
 
-        query_embedding = embedder.embed_query("Tell me about astronomy.")
-        results = search_document(user_id, doc_a, query_embedding, k=1, fetch_k=10)
+        results = search_document(user_id, doc_a, "Tell me about astronomy.", k=1, fetch_k=10)
         assert len(results) == 1
         assert "astronomy" in results[0][0].page_content.lower()
 
-        results_b = search_document(user_id, doc_b, query_embedding, k=1, fetch_k=10)
+        results_b = search_document(user_id, doc_b, "Tell me about astronomy.", k=1, fetch_k=10)
         assert len(results_b) == 1
         assert "cooking" in results_b[0][0].page_content.lower()
     finally:
@@ -116,23 +113,39 @@ def test_doc_id_filtering_isolates_documents_for_same_user(embedder):
         delete_document(user_id, doc_b)
 
 
-def test_user_id_filtering_prevents_cross_user_access(embedder):
+def test_user_id_filtering_prevents_cross_user_access():
     doc_id = f"shared-doc-{uuid.uuid4().hex[:8]}"
     user_a, user_b = f"user-a-{uuid.uuid4().hex[:8]}", f"user-b-{uuid.uuid4().hex[:8]}"
     try:
         upsert_document_chunks(user_a, doc_id, "a.txt", [Document(page_content="User A's private financial notes.")])
 
-        query_embedding = embedder.embed_query("What are the financial notes?")
         # User B queries the SAME doc_id user A used — must see nothing.
-        results_b = search_document(user_b, doc_id, query_embedding, k=5, fetch_k=20)
+        results_b = search_document(user_b, doc_id, "What are the financial notes?", k=5, fetch_k=20)
         assert results_b == []
 
         # User A, querying their own doc_id, still finds it.
-        results_a = search_document(user_a, doc_id, query_embedding, k=5, fetch_k=20)
+        results_a = search_document(user_a, doc_id, "What are the financial notes?", k=5, fetch_k=20)
         assert len(results_a) == 1
     finally:
         delete_document(user_a, doc_id)
         delete_document(user_b, doc_id)
+
+
+def test_hybrid_search_finds_exact_keyword_match(owner):
+    """The hybrid (BM25) component should surface a chunk containing an
+    exact, distinctive term even when it's semantically unremarkable — the
+    kind of match dense embeddings alone can under-rank."""
+    user_id, doc_id = owner
+    chunks = [
+        Document(page_content="The error code was ZX-9981-ALPHA, logged during startup diagnostics."),
+        Document(page_content="General troubleshooting steps include restarting the device and checking cables."),
+        Document(page_content="Software updates can resolve many common compatibility issues."),
+    ]
+    upsert_document_chunks(user_id, doc_id, "manual.txt", chunks)
+
+    results = search_document(user_id, doc_id, "What does error code ZX-9981-ALPHA mean?", k=1, fetch_k=10)
+    assert len(results) == 1
+    assert "ZX-9981-ALPHA" in results[0][0].page_content
 
 
 def test_delete_document_removes_only_that_owners_vectors(embedder):

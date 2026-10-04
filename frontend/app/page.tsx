@@ -11,6 +11,7 @@ import {
   PlanetRingIcon,
   ShieldIcon,
 } from "@/components/icons";
+import LandingCursor from "@/components/LandingCursor";
 import LandingPreview from "@/components/LandingPreview";
 import SectionDots, { type LandingScene } from "@/components/SectionDots";
 import { ASSISTANT_MODE_INFO, ASSISTANT_MODE_OPTIONS } from "@/lib/settings";
@@ -48,6 +49,7 @@ function scrollToId(id: string) {
 export default function LandingPage() {
   return (
     <div className="landing">
+      <LandingCursor />
       <div className="landing-cosmos" aria-hidden="true">
         <div className="landing-stars" />
       </div>

@@ -78,11 +78,11 @@ export const DEFAULT_SETTINGS: Settings = {
   askClarifyingQuestions: false,
 };
 
-/** Depth preset -> chunks retrieved per query (server clamps to 1..16). */
+/** Depth preset -> chunks retrieved per query (server clamps to 1..24). */
 export const DEPTH_K: Record<SearchDepth, number> = {
-  fast: 4,
-  balanced: 7,
-  thorough: 12,
+  fast: 5,
+  balanced: 9,
+  thorough: 18,
 };
 
 export const ACCENT_OPTIONS: AccentColor[] = ["blue", "purple", "green", "orange", "pink", "red"];
@@ -171,7 +171,7 @@ export function sanitize(raw: unknown): Settings {
 
   // retrievalK: honor a manually tuned value, clamped; depth presets rewrite it
   if (typeof r.retrievalK === "number" && Number.isFinite(r.retrievalK)) {
-    base.retrievalK = Math.min(16, Math.max(1, Math.round(r.retrievalK)));
+    base.retrievalK = Math.min(24, Math.max(1, Math.round(r.retrievalK)));
   }
 
   if (isGroundingMode(r.groundingMode)) base.groundingMode = r.groundingMode;

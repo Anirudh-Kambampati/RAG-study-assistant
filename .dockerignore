@@ -1,0 +1,32 @@
+# Never bake local secrets or dev artifacts into the image.
+.env
+.env.*
+!.env.example
+
+# Not needed in the backend image (separate Next.js app, its own deploy).
+frontend/
+
+# VCS / editor / tooling
+.git
+.claude
+.freebuff
+.pytest_cache
+
+# Python
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Local runtime data — created fresh at container startup.
+data/
+faiss_index/
+chat_store.json
+
+# Node (root dev-convenience scripts; not needed in the backend image).
+node_modules/
+package.json
+package-lock.json
+
+# Tests aren't needed at runtime.
+tests/

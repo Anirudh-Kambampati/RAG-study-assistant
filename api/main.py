@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import shutil
 import uuid
@@ -16,8 +17,13 @@ load_dotenv()
 
 from loaders.loader_factory import load_source
 from chunking.text_splitter import split_documents
-from embeddings.embedder import get_embedding_model
-from vector_store.qdrant_store import delete_document, search_document, upsert_document_chunks
+from vector_store.qdrant_store import (
+    count_document_chunks,
+    delete_document,
+    get_all_document_chunks,
+    search_document,
+    upsert_document_chunks,
+)
 from llm.generator import get_llm, get_fallback_llm
 from llm.prompts import assemble_prompt, build_history_text, sanitize_preferences
 from db import db_session, init_db
@@ -26,9 +32,18 @@ from api.routes_auth import router as auth_router
 
 app = FastAPI(title="Metis API")
 
+# FRONTEND_URL is the deployed frontend's origin (e.g.
+# "https://metis.example.com"); comma-separate multiple origins (apex +
+# www) if needed. Always falls back to the local Next.js dev server so
+# `npm run dev` keeps working without any env setup. CORS credentials
+# require an explicit origin list — never "*" — to stay compatible with
+# the HttpOnly session cookie's allow_credentials=True.
+_frontend_urls = os.getenv("FRONTEND_URL", "http://localhost:3000")
+ALLOWED_ORIGINS = [origin.strip() for origin in _frontend_urls.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
@@ -56,13 +71,22 @@ USER_DATA_ROOT = Path("data/users")
 
 SAFE_ID = re.compile(r"[^\w.\- ]")
 MAX_CHUNK_PREVIEW = 1400
-DEFAULT_RETRIEVAL_K = 6
-MAX_RETRIEVAL_K = 16
+DEFAULT_RETRIEVAL_K = 8
+MAX_RETRIEVAL_K = 24
 # MMR casts a wider net than k before picking the final, diverse set — this
 # keeps near-duplicate chunks (e.g. repeated section headers) from crowding
-# out genuinely different passages.
-MMR_FETCH_MULTIPLIER = 4
-MMR_LAMBDA = 0.5
+# out genuinely different passages. A high multiplier matters more than it
+# might look: it's what lets MMR actually consider chunks from *across* a
+# large document rather than just the handful nearest the query embedding.
+MMR_FETCH_MULTIPLIER = 8
+MMR_LAMBDA = 0.35
+# Below this many chunks, retrieve the whole document instead of narrowing
+# by similarity — top-k search (MMR or not) only ever returns chunks near
+# the query embedding, so a broad question ("summarize this") can easily
+# miss whole sections of a document that never comes close to fitting in
+# one similarity neighborhood. For a document this small, there's no real
+# cost to just sending all of it.
+FULL_DOCUMENT_CHUNK_THRESHOLD = 40
 
 
 def document_dir(user_id: str, document_id: str) -> Path:
@@ -156,6 +180,17 @@ class ChatRequest(BaseModel):
     highlight_key_points: bool | None = None
     related_concepts: bool | None = None
     ask_clarifying_questions: bool | None = None
+
+
+@app.get("/health")
+def health() -> dict:
+    """Liveness/readiness probe for the hosting platform.
+
+    Deliberately does nothing but confirm the process is up — no DB, Qdrant,
+    or model calls — so it stays fast and can't report "unhealthy" just
+    because a dependency is slow or temporarily unreachable.
+    """
+    return {"status": "ok"}
 
 
 @app.get("/chats")
@@ -305,16 +340,23 @@ def query_chat(
     k = body.k if body.k is not None else DEFAULT_RETRIEVAL_K
     k = max(1, min(k, MAX_RETRIEVAL_K))
 
-    query_embedding = get_embedding_model().embed_query(body.query)
-    results = search_document(
-        user["id"],
-        chat["document_id"],
-        query_embedding,
-        k=k,
-        fetch_k=max(k * MMR_FETCH_MULTIPLIER, 20),
-        lambda_mult=MMR_LAMBDA,
-    )
-    docs = [doc for doc, _score in results]
+    total_chunks = count_document_chunks(user["id"], chat["document_id"])
+    if 0 < total_chunks <= FULL_DOCUMENT_CHUNK_THRESHOLD:
+        # Small enough to just send everything — see FULL_DOCUMENT_CHUNK_THRESHOLD.
+        docs = get_all_document_chunks(user["id"], chat["document_id"])
+        scores: list[float | None] = [None] * len(docs)
+    else:
+        results = search_document(
+            user["id"],
+            chat["document_id"],
+            body.query,
+            k=k,
+            fetch_k=max(k * MMR_FETCH_MULTIPLIER, 20),
+            lambda_mult=MMR_LAMBDA,
+        )
+        docs = [doc for doc, _score in results]
+        scores = [score for _doc, score in results]
+
     # Each chunk is labeled with its 1-based rank ("[1]", "[2]", ...) so the
     # model can cite it inline — this numbering must stay in lockstep with
     # `sources` below, since the frontend resolves "[n]" against sources[n-1].
@@ -328,7 +370,7 @@ def query_chat(
             title=chat["title"],
             snippet=doc.page_content[:300].replace("\n", " ").strip(),
         )
-        for i, (doc, score) in enumerate(results)
+        for i, (doc, score) in enumerate(zip(docs, scores))
     ]
 
     prefs = sanitize_preferences(

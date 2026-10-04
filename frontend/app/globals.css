@@ -2267,13 +2267,21 @@ html.reduce-motion .landing {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* Leave room for the absolutely-positioned scroll cue so the CTAs never
+     sit underneath it. */
+  padding-bottom: 3.5rem;
+}
+
+#hero.landing-scene {
+  padding-top: var(--l-nav-h);
+  padding-bottom: 0;
 }
 
 .landing-hero-wordmark {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
-  font-size: 2rem;
+  gap: 0.75rem;
+  font-size: 1.6rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--l-text);
@@ -2283,9 +2291,9 @@ html.reduce-motion .landing {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   flex-shrink: 0;
   color: #ffffff;
   background: linear-gradient(135deg, #8b1538, #4a0e21);
@@ -2293,8 +2301,10 @@ html.reduce-motion .landing {
 }
 
 .landing-hero-title {
-  margin-top: 1.75rem;
-  font-size: clamp(2.6rem, 7vw, 5rem);
+  margin-top: clamp(0.75rem, 2.5vh, 1.5rem);
+  /* Scale with viewport height too, so the hero fits above the fold on
+     short / zoomed windows instead of overflowing. */
+  font-size: clamp(2.4rem, min(7vw, 10vh), 5rem);
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.03em;
@@ -2305,23 +2315,23 @@ html.reduce-motion .landing {
 }
 
 .landing-hero-tagline {
-  margin-top: 1.1rem;
-  font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+  margin-top: clamp(0.6rem, 2vh, 1.1rem);
+  font-size: clamp(1.1rem, min(2.4vw, 3.2vh), 1.45rem);
   font-weight: 500;
   color: var(--l-text);
-  max-width: 24ch;
+  max-width: 40ch;
 }
 
 .landing-hero-sub {
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   font-size: 1.05rem;
-  line-height: 1.65;
+  line-height: 1.6;
   color: var(--l-muted);
-  max-width: 54ch;
+  max-width: 68ch;
 }
 
 .landing-hero-actions {
-  margin-top: 2.1rem;
+  margin-top: clamp(1.1rem, 3.5vh, 2rem);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -2366,7 +2376,7 @@ html:not(.reduce-motion) .landing-btn-secondary:active {
 
 .landing-scroll-cue {
   position: absolute;
-  bottom: 1.75rem;
+  bottom: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -2892,6 +2902,103 @@ html:not(.reduce-motion) .landing-mode-card:hover {
   background: var(--l-accent);
   border-color: var(--l-accent);
   transform: scale(1.3);
+}
+
+/* ---------- Custom landing-page cursor (components/LandingCursor.tsx) ----
+   Position is written every frame as --x/--y custom properties by the
+   component itself; scale/rotate/opacity come from React state. Combining
+   both into one `transform` here means the two never fight over the
+   property. Only active while LandingCursor is mounted (toggles this body
+   class itself), so it can't leak onto any other page. */
+
+body.landing-custom-cursor,
+body.landing-custom-cursor a,
+body.landing-custom-cursor button,
+body.landing-custom-cursor input,
+body.landing-custom-cursor textarea,
+body.landing-custom-cursor [role="button"] {
+  cursor: none;
+}
+
+@media (pointer: coarse) {
+  body.landing-custom-cursor,
+  body.landing-custom-cursor a,
+  body.landing-custom-cursor button {
+    cursor: auto;
+  }
+}
+
+.landing-cursor-trail,
+.landing-cursor-glow,
+.landing-cursor-ring,
+.landing-cursor-star {
+  --x: 0px;
+  --y: 0px;
+  --s: 1;
+  --r: 0deg;
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: opacity 0.2s ease;
+}
+
+.landing-cursor-trail {
+  width: 16px;
+  height: 16px;
+  z-index: 9996;
+  transform: translate3d(var(--x), var(--y), 0) scale(var(--s));
+}
+
+.landing-cursor-glow {
+  width: 56px;
+  height: 56px;
+  z-index: 9997;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--l-accent), var(--l-accent-2));
+  filter: blur(28px);
+  transform: translate3d(var(--x), var(--y), 0) scale(var(--s));
+}
+
+.landing-cursor-ring {
+  width: 36px;
+  height: 36px;
+  z-index: 9998;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--l-accent-2) 50%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--l-accent-2) 40%, transparent);
+  transform: translate3d(var(--x), var(--y), 0) scale(var(--s));
+}
+
+.landing-cursor-star {
+  width: 20px;
+  height: 20px;
+  z-index: 10000;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--l-accent-2) 70%, transparent));
+  transform: translate3d(var(--x), var(--y), 0) scale(var(--s)) rotate(var(--r));
+}
+
+.landing-cursor-burst {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--l-accent-2) 50%, transparent);
+  pointer-events: none;
+  z-index: 9999;
+  animation: landing-cursor-burst 0.38s ease-out forwards;
+}
+
+@keyframes landing-cursor-burst {
+  from {
+    transform: scale(0.3);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
 
 @media (max-width: 900px) {

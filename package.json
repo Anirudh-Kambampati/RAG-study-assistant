@@ -1,0 +1,13 @@
+{
+  "name": "metis-dev",
+  "private": true,
+  "description": "Root convenience scripts for running the FastAPI backend and Next.js frontend together in development. Not published; the actual apps are api/ (Python) and frontend/ (Next.js).",
+  "scripts": {
+    "dev:backend": "python -m uvicorn api.main:app --reload --reload-exclude frontend/* --reload-exclude data/* --reload-exclude .next/* --reload-exclude node_modules/* --reload-exclude .venv/* --reload-exclude .git/*",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:all": "concurrently -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
