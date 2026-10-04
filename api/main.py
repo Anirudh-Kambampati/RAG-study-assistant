@@ -15,8 +15,17 @@ from pydantic import BaseModel
 
 load_dotenv()
 
+# TEMPORARY bisection diagnostic (remove once the slow-boot/hang on Render is
+# found) — each print flushes immediately (PYTHONUNBUFFERED=1), so whichever
+# line is the last one to show up in the platform's logs before it goes
+# quiet pinpoints which import is stuck.
+print("main.py: starting imports...", flush=True)
+
 from loaders.loader_factory import load_source
 from chunking.text_splitter import split_documents
+
+print("main.py: loaders/chunking imported", flush=True)
+
 from vector_store.qdrant_store import (
     count_document_chunks,
     delete_document,
@@ -24,11 +33,19 @@ from vector_store.qdrant_store import (
     search_document,
     upsert_document_chunks,
 )
+
+print("main.py: vector_store (qdrant_client/fastembed) imported", flush=True)
+
 from llm.generator import get_llm, get_fallback_llm
 from llm.prompts import assemble_prompt, build_history_text, sanitize_preferences
+
+print("main.py: llm (langchain) imported", flush=True)
+
 from db import db_session, init_db
 from auth import get_current_user
 from api.routes_auth import router as auth_router
+
+print("main.py: all imports done", flush=True)
 
 app = FastAPI(title="Metis API")
 
