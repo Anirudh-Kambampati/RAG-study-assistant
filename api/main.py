@@ -87,6 +87,11 @@ MMR_LAMBDA = 0.35
 # one similarity neighborhood. For a document this small, there's no real
 # cost to just sending all of it.
 FULL_DOCUMENT_CHUNK_THRESHOLD = 40
+# Bounds the worst case for a single upload: a bigger file means more chunks,
+# which means a bigger embedding batch held in memory at once. This doesn't
+# fix memory building up *across* requests (see embeddings/embedder.py for
+# that) — it just caps how bad any one request can be.
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 
 def document_dir(user_id: str, document_id: str) -> Path:
@@ -219,13 +224,19 @@ def create_chat(
     if existing is not None:
         raise HTTPException(status_code=409, detail="A chat already exists for this document")
 
+    original_name = Path(file.filename or "document").name
+    data = file.file.read()
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large (max {MAX_UPLOAD_BYTES // (1024 * 1024)}MB)",
+        )
+
     document_id = str(uuid.uuid4())
     doc_dir = document_dir(user["id"], document_id)
     doc_dir.mkdir(parents=True, exist_ok=True)
 
-    original_name = Path(file.filename or "document").name
     suffix = Path(original_name).suffix
-    data = file.file.read()
     file_path = doc_dir / f"original{suffix}"
     file_path.write_bytes(data)
 
