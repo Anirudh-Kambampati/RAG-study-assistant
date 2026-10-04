@@ -50,7 +50,11 @@ export async function fetchChats(): Promise<ChatMap> {
   return res.json();
 }
 
-export async function createChat(docId: string, file: File): Promise<void> {
+/** Returns the chat's actual doc_id/slug as the backend created it — the
+ * backend sanitizes the requested doc_id (e.g. "Notes (1).pdf" becomes
+ * "Notes _1_.pdf"), so callers must navigate using this returned value
+ * rather than re-deriving a slug from the original filename themselves. */
+export async function createChat(docId: string, file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
   const res = await handleErrors(
@@ -59,7 +63,8 @@ export async function createChat(docId: string, file: File): Promise<void> {
       body: form,
     })
   );
-  await res.json();
+  const body = await res.json();
+  return body.doc_id as string;
 }
 
 export async function deleteChat(docId: string): Promise<void> {

@@ -39,8 +39,8 @@ export default function Home() {
     setUploading(true);
     try {
       setStage("Indexing document (one-time process)…");
-      await createChat(file.name, file);
-      router.push(`/chat/${encodeURIComponent(file.name)}`);
+      const docId = await createChat(file.name, file);
+      router.push(`/chat/${encodeURIComponent(docId)}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Upload failed";
       setError(msg);
