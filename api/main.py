@@ -26,6 +26,7 @@ from vector_store.qdrant_store import (
 )
 from llm.generator import get_llm, get_fallback_llm
 from llm.prompts import assemble_prompt, build_history_text, sanitize_preferences
+from embeddings.embedder import get_embedding_model
 from db import db_session, init_db
 from auth import get_current_user
 from api.routes_auth import router as auth_router
@@ -56,6 +57,13 @@ app.include_router(auth_router)
 def _startup() -> None:
     init_db()
     USER_DATA_ROOT.mkdir(parents=True, exist_ok=True)
+    # Loads the embedding model now, during startup, instead of lazily on
+    # whichever request happens to call it first. The model files are baked
+    # into the Docker image (see Dockerfile), so this only reads local disk
+    # — but it still costs real memory/CPU to initialize the onnxruntime
+    # session, and that cost belongs here, not stacked on top of a user's
+    # first upload.
+    get_embedding_model()
 
 
 # ---------------------------------------------------------------------------

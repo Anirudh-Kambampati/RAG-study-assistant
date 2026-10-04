@@ -9,6 +9,10 @@ __pycache__/
 # Vector DB
 faiss_index/
 
+# Embedding model cache (baked into the Docker image at build time instead —
+# see Dockerfile and embeddings/embedder.py)
+.fastembed_cache/
+
 # Database + per-user file storage
 *.db
 *.db-journal

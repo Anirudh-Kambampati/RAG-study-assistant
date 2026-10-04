@@ -1,6 +1,18 @@
+import os
+from pathlib import Path
 from typing import List
 
 from fastembed import TextEmbedding
+
+# fastembed's own default cache dir is tempfile.gettempdir()/fastembed_cache
+# — on most container platforms (including Render) /tmp is RAM-backed
+# (tmpfs), so downloading and unpacking the ~90MB model there at runtime
+# burns into the same memory budget as everything else, on top of the
+# network fetch itself. Pointing it at a path baked into the Docker image
+# instead (see Dockerfile's pre-fetch RUN step) means a cold start never
+# downloads or writes anything at request time — it just reads files
+# already on disk from the image layer.
+_CACHE_DIR = Path(os.getenv("FASTEMBED_CACHE_PATH", Path(__file__).resolve().parent.parent / ".fastembed_cache"))
 
 _model: TextEmbedding | None = None
 
@@ -49,6 +61,7 @@ def get_embedding_model() -> _FastEmbedAdapter:
     if _model is None:
         _model = TextEmbedding(
             model_name="sentence-transformers/all-MiniLM-L6-v2",
+            cache_dir=str(_CACHE_DIR),
             threads=1,
             enable_cpu_mem_arena=False,
         )

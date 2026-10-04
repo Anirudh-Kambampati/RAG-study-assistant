@@ -25,6 +25,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Pre-fetch the embedding model into the image at build time, into the
+# exact path embeddings/embedder.py points fastembed's cache_dir at. On a
+# RAM-constrained host (Render free tier), downloading this at *runtime*
+# means it lands on /tmp (often RAM-backed/tmpfs) during a live request,
+# competing with that request's own memory use. Baking it in means a cold
+# start only ever reads already-unpacked files off disk — no network call,
+# no runtime write.
+RUN python -c "from embeddings.embedder import get_embedding_model; get_embedding_model()"
+
 # Run as a non-root user; give it a real $HOME so libraries that cache
 # under it (e.g. the HuggingFace embedding model) have somewhere to write.
 RUN useradd --create-home --uid 1000 appuser \
